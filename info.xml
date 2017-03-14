@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<extension key="com.joineryhq.paypalfields" type="module">
+  <file>paypalfields</file>
+  <name>PayPal Fields</name>
+  <description>Send customized values with each Paypal request, so that they appear in PayPal transaction history CSV downloads.</description>
+  <license>GPL-3.0</license>
+  <maintainer>
+    <author>Allen Shaw</author>
+    <email>allen@JoineryHQ.com</email>
+  </maintainer>
+  <urls>
+    <url desc="Main Extension Page">https://github.com/twomice/com.joineryhq.paypalfields</url>
+    <url desc="Documentation">https://github.com/twomice/com.joineryhq.paypalfields</url>
+    <url desc="Support">https://github.com/twomice/com.joineryhq.paypalfields/issues</url>
+    <url desc="Licensing">http://www.gnu.org/licenses/gpl-3.0.html</url>
+  </urls>
+  <releaseDate>2017-03-08</releaseDate>
+  <version>0.1</version>
+  <develStage>alpha</develStage>
+  <compatibility>
+    <ver>4.7</ver>
+  </compatibility>
+  <comments>As written, this extension adds the contribution's Financial Type name into the PayPal column "Custom Number". This extension could be improved to support insertion of any value into any of several other PayPal CSV columns; see README.md or Documentaton link.</comments>
+  <civix>
+    <namespace>CRM/Paypalfields</namespace>
+  </civix>
+</extension>
