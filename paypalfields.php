@@ -3,9 +3,27 @@
 require_once 'paypalfields.civix.php';
 
 function paypalfields_civicrm_alterPaymentProcessorParams($paymentObj, &$rawParams, &$cookedParams) {
-  if (get_class($paymentObj) == CRM_Core_Payment_PayPalImpl) {
+  CRM_Core_Error::debug_log_message(__FUNCTION__ . ' started.');
+  $timestamp = microtime();
+  CRM_Core_Error::debug_log_message(__FUNCTION__ . ' timestamp: ' . $timestamp);
+  $args_log = func_get_args();
+  $args_log[1]['credit_card_number'] = '[REDACTED]';
+  $args_log[1]['cvv2'] = '[REDACTED]';
+  $args_log[1]['credit_card_exp_date'] = '[REDACTED]';
+  $args_log[2]['acct'] = '[REDACTED]';
+  $args_log[2]['expDate'] = '[REDACTED]';
+  $args_log[2]['cvv2'] = '[REDACTED]';
+  CRM_Core_Error::debug_log_message(__FUNCTION__ . ' timestamp: ' . $timestamp . '; parameters: ' . json_encode($args_log));
+
+  if (get_class($paymentObj) == 'CRM_Core_Payment_PayPalImpl') {
     $cookedParams['custom'] = $rawParams['financialType_name'];
+    $cookedParams_log = $cookedParams;
+    $cookedParams_log['acct'] = '[REDACTED]';
+    $cookedParams_log['expDate'] = '[REDACTED]';
+    $cookedParams_log['cvv2'] = '[REDACTED]';
+    CRM_Core_Error::debug_log_message(__FUNCTION__ . ' timestamp: ' . $timestamp . '; altered cookedParams: ' . json_encode($cookedParams_log));
   }
+  CRM_Core_Error::debug_log_message(__FUNCTION__ . ' timestamp: ' . $timestamp . '; ended.');
 }
 
 /**
