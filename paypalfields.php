@@ -15,8 +15,23 @@ function paypalfields_civicrm_alterPaymentProcessorParams($paymentObj, &$rawPara
   $args_log[2]['cvv2'] = '[REDACTED]';
   CRM_Core_Error::debug_log_message(__FUNCTION__ . ' timestamp: ' . $timestamp . '; parameters: ' . json_encode($args_log));
 
+  // If this is paypal, add the financial type name to the 'custom' parameter.
   if (get_class($paymentObj) == 'CRM_Core_Payment_PayPalImpl') {
-    $cookedParams['custom'] = $rawParams['financialType_name'];
+    if ($rawParams['financialType_name']) {
+      $financial_type_name = $rawParams['financialType_name'];
+    }
+    else {
+      if (!empty($rawParams['financial_type_id'])) {
+        $result = civicrm_api3('FinancialType', 'get', array(
+          'sequential' => 1,
+          'id' => $rawParams['financial_type_id'],
+        ));
+        if (!empty($result['values'][0]['name'])) {
+          $financial_type_name = $result['values'][0]['name'];
+        }
+      }
+    }
+    $cookedParams['custom'] = $financial_type_name;
     $cookedParams_log = $cookedParams;
     $cookedParams_log['acct'] = '[REDACTED]';
     $cookedParams_log['expDate'] = '[REDACTED]';
