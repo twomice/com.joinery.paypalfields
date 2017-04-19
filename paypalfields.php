@@ -17,20 +17,68 @@ function paypalfields_civicrm_alterPaymentProcessorParams($paymentObj, &$rawPara
 
   // If this is paypal, add the financial type name to the 'custom' parameter.
   if (get_class($paymentObj) == 'CRM_Core_Payment_PayPalImpl') {
-    if ($rawParams['financialType_name']) {
-      $financial_type_name = $rawParams['financialType_name'];
-    }
-    else {
-      if (!empty($rawParams['financial_type_id'])) {
-        $result = civicrm_api3('FinancialType', 'get', array(
-          'sequential' => 1,
-          'id' => $rawParams['financial_type_id'],
-        ));
-        if (!empty($result['values'][0]['name'])) {
-          $financial_type_name = $result['values'][0]['name'];
+    // If this is a priceset, we should concat the distinct financial types
+    // for each selected price field.
+    if (!empty($rawParams['priceSetId'])) {
+      $financial_type_ids = array();
+      // Find params named price_([0-9]+).
+      foreach ($rawParams as $paramKey => $paramValue) {
+        if (!empty($paramValue) && preg_match('/^price_([0-9]+)$/', $paramKey, $matches)) {
+          $price_field_id = $matches[1];
+          // If it's an array, treat each array member as a Price Field Value and
+          // get its financial type id.
+          if (is_array($paramValue)) {
+            foreach (array_keys($paramValue) as $price_field_value_id) {
+              $result = civicrm_api3('PriceFieldValue', 'get', array(
+                'sequential' => 1,
+                'id' => $price_field_value_id,
+              ));
+            }
+          }
+          // If it's not an array, treat it as a Price Field with a single Price
+          // Field Value (e.g., a "Text/Numeric" field, and get the financial
+          // type id of that Price Field Value.
+          else {
+            $result = civicrm_api3('PriceFieldValue', 'get', array(
+              'sequential' => 1,
+              'price_field_id' => $price_field_id,
+            ));
+          }
+          if (!empty($result['values'][0]['financial_type_id'])) {
+            $financial_type_ids[] = $result['values'][0]['financial_type_id'];
+          }
         }
       }
+      $financial_type_names = array();
+      foreach (array_unique($financial_type_ids) as $financial_type_id) {
+        $result = civicrm_api3('FinancialType', 'get', array(
+          'sequential' => 1,
+          'id' => $financial_type_id,
+        ));
+        if (!empty($result['values'][0]['name'])) {
+          $financial_type_names[] = $result['values'][0]['name'];
+        }
+      }
+      sort($financial_type_names);
+      $financial_type_name = implode(', ', $financial_type_names);
     }
+    // If it's not using a price set, it may simply include its financial type
+    // name. If so, use that.
+    elseif ($rawParams['financialType_name']) {
+      $financial_type_name = $rawParams['financialType_name'];
+    }
+    // Alternatively, it may include the financial type ID, so get the name
+    // based on on that.
+    elseif (!empty($rawParams['financial_type_id'])) {
+      $result = civicrm_api3('FinancialType', 'get', array(
+        'sequential' => 1,
+        'id' => $rawParams['financial_type_id'],
+      ));
+      if (!empty($result['values'][0]['name'])) {
+        $financial_type_name = $result['values'][0]['name'];
+      }
+    }
+
     $cookedParams['custom'] = $financial_type_name;
     $cookedParams_log = $cookedParams;
     $cookedParams_log['acct'] = '[REDACTED]';
